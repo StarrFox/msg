@@ -133,3 +133,7 @@ dmypy.json
 /target
 
 .vscode/
+
+# nix build
+result
+result/
