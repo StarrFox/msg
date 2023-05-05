@@ -1,11 +1,12 @@
-#[macro_use] extern crate rocket;
+use anyhow::Ok;
 
-#[get("/<name>/<age>")]
-fn hello(name: &str, age: u8) -> String {
-    format!("Hello, {} year old named {}!", age, name)
-}
+mod db;
 
-#[launch]
-fn rocket() -> _ {
-    rocket::build().mount("/", routes![hello])
+const MemoryDB: &str = "sqlite::memory:";
+const TestDB: &str = "sqlite:./test.db?mode=rwc";
+
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    Ok(())
 }
