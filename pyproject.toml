@@ -9,6 +9,14 @@ repository = "https://github.com/StarrFox/msg"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+fastapi = "^0.95.1"
+uvicorn = {extras = ["standard"], version = "^0.22.0"}
+sqlmodel = "^0.0.8"
+pendulum = "^2.1.2"
+
+[tool.poetry.group.tests.dependencies]
+pytest = "^7.3.1"
+pytest-asyncio = "^0.21.0"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
