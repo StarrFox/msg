@@ -16,9 +16,9 @@ async def test_basic():
 
     flake = await gen.next()
 
-    assert(flake.counter == 0)
-    assert(flake.machine_id == 1)
-    assert((flake.timestamp - now) < 100)
+    assert flake.counter == 0
+    assert flake.machine_id == 1
+    assert (flake.timestamp - now) < 100
 
 
 @pytest.mark.asyncio
@@ -35,4 +35,4 @@ async def test_counter_roll_over():
 
     rollover = await gen.next()
 
-    assert(last.timestamp != rollover.timestamp)
+    assert last.timestamp != rollover.timestamp
