@@ -3,33 +3,41 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
-    flake-utils.url = "github:numtide/flake-utils";
+    flake-parts.url = "github:hercules-ci/flake-parts/";
+    nix-systems.url = "github:nix-systems/default";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-
-        customOverrides = self: super: {
-          # Overrides go here
-        };
-
-        app = pkgs.poetry2nix.mkPoetryApplication {
+  outputs = inputs @ {
+    flake-parts,
+    nix-systems,
+    ...
+  }:
+    flake-parts.lib.mkFlake {inherit inputs;} {
+      debug = true;
+      systems = import nix-systems;
+      perSystem = {
+        config,
+        self',
+        inputs',
+        pkgs,
+        system,
+        ...
+      }: {
+        packages.default = pkgs.poetry2nix.mkPoetryApplication {
           projectDir = ./.;
-          overrides =
-            [ pkgs.poetry2nix.defaultPoetryOverrides customOverrides ];
+          overrides = [
+            pkgs.poetry2nix.defaultPoetryOverrides
+          ];
         };
 
-        packageName = "msg";
-      in {
-        packages.${packageName} = app;
-
-        defaultPackage = self.packages.${system}.${packageName};
-
-        devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ poetry commitizen just direnv ];
-          inputsFrom = builtins.attrValues self.packages.${system};
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            poetry
+            commitizen
+            just
+            alejandra
+          ];
         };
-      });
+      };
+    };
 }

@@ -359,17 +359,6 @@ dotenv = ["python-dotenv (>=0.10.4)"]
 email = ["email-validator (>=1.0.3)"]
 
 [[package]]
-name = "pypika"
-version = "0.48.9"
-description = "A SQL query builder API for Python"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "PyPika-0.48.9.tar.gz", hash = "sha256:838836a61747e7c8380cd1b7ff638694b7a7335345d0f559b04b2cd832ad5378"},
-]
-
-[[package]]
 name = "pytest"
 version = "7.3.1"
 description = "pytest: simple powerful testing with Python"
@@ -758,4 +747,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "c34ded023cf3b686537f25826ad39aa659f24510886b78589b0d7345abdec569"
+content-hash = "5b81a7c278b67ab629a33395b4f44495817b680cb30bf55a4f4b249585b12ec5"
