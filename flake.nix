@@ -40,9 +40,9 @@
         devShells.default = pkgs.mkShell {
           name = packageName;
           packages = with pkgs; [
-            rustc
             cargo
             alejandra
+            rustup
           ];
         };
       };
