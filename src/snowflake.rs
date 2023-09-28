@@ -1,10 +1,10 @@
-use chrono::{Utc, DateTime};
+use chrono::{DateTime, Utc};
 
 /// First second of 2023
 const MSGEPOCH: u64 = 1672531200;
 
 struct SnowFlake {
-    value: u64
+    value: u64,
 }
 
 impl SnowFlake {
@@ -29,7 +29,7 @@ impl SnowFlake {
 struct SnowFlakeGenerator {
     machine_id: u32,
     counter: u32,
-    rollover_timestamp: i64
+    rollover_timestamp: i64,
 }
 
 impl SnowFlakeGenerator {
@@ -53,7 +53,7 @@ impl SnowFlakeGenerator {
         let mut snowflake_value = (timestamp << 22) as u64;
 
         snowflake_value |= (self.machine_id << 12) as u64;
-        snowflake_value |= (self.counter & & 0b111111111111) as u64;
+        snowflake_value |= (self.counter & &0b111111111111) as u64;
 
         self.counter += 1;
 
@@ -62,7 +62,9 @@ impl SnowFlakeGenerator {
             self.counter = 0;
         }
 
-        SnowFlake { value: snowflake_value }
+        SnowFlake {
+            value: snowflake_value,
+        }
     }
 }
 
