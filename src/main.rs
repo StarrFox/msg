@@ -2,9 +2,10 @@ use anyhow::Result;
 
 mod snowflake;
 mod websocket;
+mod messages;
 
 const ADDRESS: &str = "127.0.0.1:9000";
-// rust trolling
+// rust trolling; can't concat two consts
 const CLIENT_ADDRESS: &str = "ws://127.0.0.1:9000";
 
 #[tokio::main]
