@@ -5,6 +5,7 @@ import asyncio
 import asyncpg
 
 from msg.security import HashedUsername, HashedPassword
+from msg.user import User
 
 
 def get_current_username() -> str:
@@ -21,6 +22,12 @@ CREATE TABLE IF NOT EXISTS logins (
     user_id BIGINT NOT NULL,
     hashed_username TEXT NOT NULL UNIQUE,
     hashed_password TEXT NOT NULL,
+    PRIMARY KEY (user_id)
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    user_id BIGINT NOT NULL,
+    name TEXT NOT NULL,
     PRIMARY KEY (user_id)
 );
 """.strip()
@@ -60,7 +67,13 @@ class Database:
             await self._ensure_tables(self._connection)
             return self._connection
 
-    async def create_user(self, user_id: int, hashed_username: HashedUsername, hashed_password: HashedPassword):
+    async def create_user(
+            self,
+            user_id: int,
+            hashed_username: HashedUsername,
+            hashed_password: HashedPassword,
+            name: str
+        ):
         pool = await self.connect()
 
         async with pool.acquire() as connection:
@@ -75,6 +88,12 @@ class Database:
                 )
             except asyncpg.UniqueViolationError:
                 raise UsernameInUse("Username already in use")
+            
+            await connection.execute(
+                "INSERT INTO users (user_id, name) VALUES ($1, $2);",
+                user_id,
+                name,
+            )
 
     async def check_login(self, hashed_username: HashedUsername, test_hashed_password: HashedPassword) -> int:
         pool = await self.connect()
@@ -89,21 +108,23 @@ class Database:
             if row is None:
                 raise MissingUsername("Username not in database")
 
-            if row["hashed_password"] == test_hashed_password.get_hashed():
-                return row["user_id"]
+            if row["hashed_password"] != test_hashed_password.get_hashed():
+                raise IncorrectPassword("Password hashes did not match")
+            
+            return row["user_id"]
 
-            raise IncorrectPassword("Password hashes did not match")
+    async def get_user(self, user_id: int) -> User:
+        pool = await self.connect()
 
+        async with pool.acquire() as connection:
+            connection: asyncpg.Connection
 
+            user_info: asyncpg.Record = await connection.fetchrow(
+                "SELECT user_id, name FROM users WHERE user_id = $1;",
+                user_id,
+            )
 
-
-
-
-
-
-
-
-
-
-
-
+            return User(
+                id=user_id,
+                name=user_info["name"],
+            )
