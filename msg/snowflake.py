@@ -25,7 +25,7 @@ class SnowFlake:
         return self.value & 0b111111111111
 
     @property
-    def when(self) -> pendulum.DateTime:
+    def when(self) -> pendulum.DateTime: # type: ignore
         # note: this does utc by default
         return pendulum.from_timestamp(self.timestamp)
 

@@ -1,43 +1,63 @@
-from typing import Annotated
+from fastapi import FastAPI, Security, HTTPException
+from fastapi_jwt import JwtAccessBearer, JwtAuthorizationCredentials
 
-from fastapi import FastAPI, Depends
-from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel
-
+from msg.security import HashedUsername, HashedPassword
+from msg.database import Database, MissingUsername, IncorrectPassword, UsernameInUse
+from msg.snowflake import SnowFlakeGenerator
 
 app = FastAPI()
-
-
-class User(BaseModel):
-    username: str
-    nickname: str
-
+# TODO: replace with real secret key
+access_security = JwtAccessBearer(secret_key="b048360d-c702-4197-a073-34b298e2d85d", auto_error=True)
+database = Database()
+snowflake_gen = SnowFlakeGenerator(machine_id=0)
 
 @app.get("/")
 async def root() -> str:
     return "Root"
 
 
+# TODO: hash password on client
+# TODO: restrict what characters can be used
+@app.post("/create_user")
+async def create_user(username: str, password: str):
+    if not 0 < len(username) <= 32:
+        raise HTTPException(status_code=401, detail="username must be between 1 and 32 characters")
+
+    if not 0 < len(password) <= 126:
+        raise HTTPException(status_code=401, detail="password must be between 1 and 126 characters")
+
+    snowflake = await snowflake_gen.next()
+
+    try:
+        await database.create_user(snowflake.value, HashedUsername(username), HashedPassword(password, username))
+    except UsernameInUse:
+        # TODO: figure out correct status code
+        raise HTTPException(status_code=401, detail="username in use")
+    
+    return snowflake.value
+
+
+@app.get("/login")
+async def login(username: str, password: str):
+    try:
+        user_id = await database.check_login(HashedUsername(username), HashedPassword(password, username))
+    except MissingUsername:
+        raise HTTPException(status_code=401, detail="Username not in use")
+    except IncorrectPassword:
+        raise HTTPException(status_code=401, detail="Incorrect password")
+    else:
+        user_id = {"user_id": user_id}
+        return {"access_token": access_security.create_access_token(subject=user_id)}
+
+
 @app.post("/messages/{channel_id}")
-async def create_message(channel_id: int):
+async def create_message(channel_id: int, user_id: JwtAuthorizationCredentials = Security(access_security)):
     pass
 
 
-def decode_token(token: str) -> User:
-    return User(
-        username="test",
-        nickname="testnick"
-    )
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
-    return decode_token(token)
-
-
 @app.get("/me")
-async def me(me: Annotated[User, Depends(get_current_user)]) -> User:
-    return me
+async def me(user_id: JwtAuthorizationCredentials = Security(access_security)) -> int:
+    return user_id["user_id"]
 
 
 if __name__ == "__main__":

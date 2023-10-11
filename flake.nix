@@ -22,9 +22,12 @@
         pkgs,
         system,
         ...
-      }: {
+      }: let
+        python = pkgs.python311;
+      in {
         packages.default = pkgs.poetry2nix.mkPoetryApplication {
           projectDir = ./.;
+          python=python;
           overrides = [
             pkgs.poetry2nix.defaultPoetryOverrides
           ];
@@ -32,6 +35,7 @@
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
+            python
             poetry
             commitizen
             just
