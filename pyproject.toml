@@ -9,7 +9,7 @@ repository = "https://github.com/StarrFox/msg"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.110.0"
+fastapi = "^0.111.0"
 uvicorn = {extras = ["standard"], version = "^0.29.0"}
 pendulum = "^3.0.0"
 aiosqlite = "^0.20.0"
